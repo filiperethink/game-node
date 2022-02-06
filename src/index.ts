@@ -1,10 +1,40 @@
-const Heading = document.getElementById("heading");
+import { getRandomIntInclusive } from "./utils";
 
-function createGame() {
+require("./style.css");
+const Heading: HTMLElement = document.getElementById("points");
+
+interface HTMLCanvasElementCustom extends CanvasRenderingContext2D {
+  x: number;
+  y: number;
+}
+type currentPlayerType = {
+  x: number;
+  y: number;
+  name: string;
+  id: string;
+  context: HTMLCanvasElementCustom;
+  points: number;
+};
+
+type currentFruitType = {
+  x: number;
+  y: number;
+  context: HTMLCanvasElementCustom;
+};
+
+type GameInstanceType = {
+  currentFruit: currentFruitType;
+  currentPlayer: currentPlayerType;
+};
+
+function createGame(): GameInstanceType {
   console.log("Criando o jogo...");
-  const canvas = document.getElementById("canvas");
-  canvas.height = 400;
+  const canvas: HTMLCanvasElement = document.getElementById(
+    "canvas"
+  ) as HTMLCanvasElement;
+  console.log({ canvas });
   canvas.width = 400;
+  canvas.height = 400;
   console.log("Criando fruta...");
   const currentFruit = generateFruits(canvas);
   console.log("Criando o jogador...");
@@ -14,13 +44,16 @@ function createGame() {
     currentPlayer,
   };
 }
+const gameInstance = createGame();
 
-function generateFruits(canvas) {
-  const ctx = canvas.getContext("2d");
+function generateFruits(canvas: HTMLCanvasElement): currentFruitType {
+  const ctx: HTMLCanvasElementCustom = canvas.getContext(
+    "2d"
+  ) as HTMLCanvasElementCustom;
   ctx.fillStyle = "gold";
 
-  const positionX = getRandomIntInclusive(0, 350);
-  const positionY = getRandomIntInclusive(0, 350);
+  const positionX = getRandomIntInclusive();
+  const positionY = getRandomIntInclusive();
 
   ctx.fillRect(positionX, positionY, 50, 50);
   ctx.x = positionX;
@@ -29,14 +62,19 @@ function generateFruits(canvas) {
     x: positionX,
     y: positionY,
   };
-  return { ctx, position };
+  return { context: ctx, ...position };
 }
 
-function createPlayer(canvas, name, id) {
-  const ctx = canvas.getContext("2d");
+function createPlayer(
+  canvas: HTMLCanvasElement,
+  name: string,
+  id: string
+): currentPlayerType {
+  const ctx: HTMLCanvasElementCustom = canvas.getContext(
+    "2d"
+  ) as HTMLCanvasElementCustom;
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, 50, 50);
-
   let player = {
     x: 0,
     y: 0,
@@ -48,42 +86,33 @@ function createPlayer(canvas, name, id) {
   return player;
 }
 
-const gameInstance = createGame();
-
 document.addEventListener("keydown", handleKeyDown);
 
-function handleArrowDown(player) {
+function handleArrowDown(player: currentPlayerType) {
   player.context.fillRect(player.x, player.y + 50, 50, 50);
   player.context.clearRect(player.x, player.y, 50, 50);
   player.y = player.y + 50;
 }
 
-function handleArrowUp(player) {
+function handleArrowUp(player: currentPlayerType) {
   player.context.fillRect(player.x, player.y - 50, 50, 50);
   player.context.clearRect(player.x, player.y, 50, 50);
   player.y = player.y - 50;
 }
 
-function handleArrowRight(player) {
+function handleArrowRight(player: currentPlayerType) {
   player.context.fillRect(player.x + 50, player.y, 50, 50);
   player.context.clearRect(player.x, player.y, 50, 50);
   player.x = player.x + 50;
 }
 
-function handleArrowLeft(player) {
+function handleArrowLeft(player: currentPlayerType) {
   player.context.fillRect(player.x - 50, player.y, 50, 50);
   player.context.clearRect(player.x, player.y, 50, 50);
   player.x = player.x - 50;
 }
 
-function getRandomIntInclusive() {
-  const numbers = [0, 50, 100, 150, 200, 250, 300, 350];
-  const randomNumber = Math.round(Math.random() * (7 - 0));
-  const sorted = numbers[randomNumber];
-  return sorted;
-}
-
-function handleKeyDown(event) {
+function handleKeyDown(event: KeyboardEvent) {
   const key = event.key;
   if (key === "ArrowDown" && gameInstance.currentPlayer.y < 350) {
     handleArrowDown(gameInstance.currentPlayer);
@@ -95,8 +124,8 @@ function handleKeyDown(event) {
     handleArrowLeft(gameInstance.currentPlayer);
   }
 
-  const colideX = gameInstance.currentFruit.position.x;
-  const colideY = gameInstance.currentFruit.position.y;
+  const colideX = gameInstance.currentFruit.x;
+  const colideY = gameInstance.currentFruit.y;
   if (
     gameInstance.currentPlayer.x === colideX &&
     gameInstance.currentPlayer.y === colideY
@@ -104,21 +133,21 @@ function handleKeyDown(event) {
     gameInstance.currentPlayer.points += 10;
     Heading.innerText = `${gameInstance.currentPlayer.points} Pontos`;
     let newPosition = {
-      x: getRandomIntInclusive(0, 350),
-      y: getRandomIntInclusive(0, 350),
+      x: getRandomIntInclusive(),
+      y: getRandomIntInclusive(),
     };
     console.log({ newPosition });
-    gameInstance.currentFruit.position.x = newPosition.x;
-    gameInstance.currentFruit.position.y = newPosition.y;
+    gameInstance.currentFruit.x = newPosition.x;
+    gameInstance.currentFruit.y = newPosition.y;
 
-    gameInstance.currentFruit.ctx.clearRect(
+    gameInstance.currentFruit.context.clearRect(
       newPosition.x,
       newPosition.y,
       50,
       50
     );
-    gameInstance.currentFruit.ctx.fillStyle = "gold";
-    gameInstance.currentFruit.ctx.fillRect(
+    gameInstance.currentFruit.context.fillStyle = "gold";
+    gameInstance.currentFruit.context.fillRect(
       newPosition.x,
       newPosition.y,
       50,
